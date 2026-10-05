@@ -33,6 +33,7 @@ jobs:
         run: |
           mkdir -p _site/assets
           cp index.html styles.css _site/
+          if [ -f riot.txt ]; then cp riot.txt _site/riot.txt; fi
           cp assets/timeline.jpg assets/decision-review.jpg assets/tactrise.svg _site/assets/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
