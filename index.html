@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tactrise: an architecture boundary review for TFT screen capture and post-game analysis. Guidance requested from Riot; no approval claimed.">
+  <meta name="color-scheme" content="dark">
+  <title>Tactrise · Architecture review for Riot</title>
+  <link rel="icon" href="assets/tactrise.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header wrap">
+    <a class="brand" href="#top" aria-label="Tactrise, back to top"><img src="assets/tactrise.svg" width="30" height="30" alt="">Tactrise <span>TTR</span></a>
+    <nav aria-label="Page sections"><a href="#options">A–E options</a><a href="#experience">Post-game experience</a><a href="#questions">Questions</a><a href="#sources">Sources</a></nav>
+    <span class="header-note">Architecture review · 05 Oct 2026</span>
+  </header>
+  <main id="main" class="wrap">
+    <section class="hero" id="top" aria-labelledby="title">
+      <div class="hero-copy">
+        <p class="eyebrow">TFT POST-GAME REVIEW / COACHING TOOL</p>
+        <h1 id="title">A better next match.<br><span>A clear boundary first.</span></h1>
+        <p class="lead">Tactrise is a proposed review tool for completed matches. Before finalizing the implementation, we are asking Riot to clarify permitted screen-capture and post-game analysis boundaries.</p>
+        <p class="decision">We will choose the architecture based on Riot's guidance.</p>
+        <p class="hero-safety">Screen pixels only. No memory access, packet inspection, gameplay automation or live advice.</p>
+        <a class="button" href="#options">Review the five options <span aria-hidden="true">↓</span></a>
+      </div>
+      <aside class="review-brief" aria-label="Scope of this submission">
+        <p class="eyebrow">GUIDANCE REQUESTED</p>
+        <h2>When do pixels<br>become game state?</h2>
+        <p>The same visible screen, processed at different times. Especially when an opponent board appears through normal player scouting.</p>
+        <div class="boundary"><strong>Screen capture only</strong><span>No process or Riot client memory access.<br>No packet inspection.</span></div>
+        <p class="status">Proposal / prototype · No approval claimed</p>
+      </aside>
+      <ul class="assurances" aria-label="Product commitments"><li>No game memory reading</li><li>No network traffic inspection</li><li>No gameplay automation</li><li>No in-game recommendations</li><li>No active-match decision assistance</li></ul>
+    </section>
+
+    <section class="section" id="overview" aria-labelledby="overview-title">
+      <div class="section-heading"><p class="eyebrow">01 / TIMING</p><h2 id="overview-title">A conservative proposal, pending guidance</h2><p>This illustrates the pixels-only approach. It is not a finalized or approved capture architecture.</p></div>
+      <ol class="pipeline" aria-label="Proposed processing stages">
+        <li><span class="step">01</span><p class="eyebrow">DURING MATCH</p><h3>Record pixels only</h3><p>No OCR, state extraction or analysis.<br>No overlay or live output.</p></li>
+        <li><span class="step">02</span><p class="eyebrow">AFTER MATCH</p><h3>Process the recording</h3><p>Only after confirmed match end.<br>Reconstruct supported observations.</p></li>
+        <li><span class="step">03</span><p class="eyebrow">POST-GAME REVIEW</p><h3>Learn from the evidence</h3><p>Review decisions and uncertainty.<br>Choose a focus for the next match.</p></li>
+      </ol>
+      <p class="note">We have not finalized the capture architecture. We will implement only the modes Riot confirms are permitted.</p>
+    </section>
+
+    <section class="section" id="options" aria-labelledby="options-title">
+      <div class="section-heading"><p class="eyebrow">02 / FIVE SEPARATE QUESTIONS</p><h2 id="options-title">Please assess each option independently</h2><p>A–E are alternatives for boundary clarification, not five features we intend to ship together. For each: <strong>YES / NO / CONDITIONAL</strong>, with any required conditions.</p></div>
+      <p class="reply-key">Mode permission: <strong>YES = permitted</strong> · <strong>NO = not permitted</strong> · <strong>CONDITIONAL = permitted only under stated conditions</strong>.</p>
+      <div class="comparison" role="region" aria-label="Architecture comparison">
+        <div class="compare-head" aria-hidden="true"><span>Option</span><span>During match</span><span>After match</span><span>Live output</span></div>
+        <div class="compare-row"><a href="#mode-a">A · Passive recording</a><span><b class="mobile-label">During match</b>Save pixels only</span><span><b class="mobile-label">After match</b>Later processing subject to guidance</span><span><b class="mobile-label">Live output</b>None</span></div>
+        <div class="compare-row"><a href="#mode-b">B · Own state, live</a><span><b class="mobile-label">During match</b>Convert own pixels → structured state</span><span><b class="mobile-label">After match</b>Use saved own state for review</span><span><b class="mobile-label">Live output</b>None</span></div>
+        <div class="compare-row"><a href="#mode-c">C · Own state, post-game</a><span><b class="mobile-label">During match</b>Save pixels only</span><span><b class="mobile-label">After match</b>Convert own pixels → structured state</span><span><b class="mobile-label">Live output</b>None</span></div>
+        <div class="compare-row emphasized"><a href="#mode-d">D · Opponents, post-game</a><span><b class="mobile-label">During match</b>Save normally scouted pixels only</span><span><b class="mobile-label">After match</b>Convert opponent pixels → context</span><span><b class="mobile-label">Live output</b>None</span></div>
+        <div class="compare-row emphasized"><a href="#mode-e">E · Opponents, live</a><span><b class="mobile-label">During match</b>Convert opponent pixels → structured state</span><span><b class="mobile-label">After match</b>Use saved opponent state for review</span><span><b class="mobile-label">Live output</b>None</span></div>
+      </div>
+      <div class="option-grid">
+        <article class="option" id="mode-a"><div class="option-top"><span class="letter">A</span><span class="chip">Pixels only</span></div><h3>Passive Screen Recording</h3><dl><dt>During match / processing</dt><dd>Capture only pixels displayed on the player's TFT screen. No OCR, extraction, structured data or analysis.</dd><dt>Stored</dt><dd>Screen video only.</dd><dt>Shown to player</dt><dd>Nothing during gameplay. No overlay or recommendation.</dd><dt>Analysis timing</dt><dd>Any later processing depends on Riot guidance; this option asks about recording itself.</dd></dl><p class="ask">Is passive recording permitted when no analysis or output occurs during gameplay?</p><p class="answer">Riot response requested: YES / NO / CONDITIONAL</p></article>
+        <article class="option" id="mode-b"><div class="option-top"><span class="letter">B</span><span class="chip">Own state · during match</span></div><h3>Live Structured Capture of Own State</h3><dl><dt>During match / processing</dt><dd>OCR / vision converts the player's visible shop, gold, level, XP, bench, board and items into meaningful structured observations.</dd><dt>Stored</dt><dd>Own-state records derived from pixels.</dd><dt>Shown to player</dt><dd>Nothing live; no recommendations or decision assistance. Review only after the match.</dd><dt>Analysis timing</dt><dd>Recognition during gameplay; coaching only post-game.</dd></dl><p class="ask">Is own-state extraction and storage permitted if it is withheld from all live output and live decision-making?</p><p class="answer">Riot response requested: YES / NO / CONDITIONAL</p></article>
+        <article class="option" id="mode-c"><div class="option-top"><span class="letter">C</span><span class="chip">Own state · after match</span></div><h3>Post-Game Processing of Recorded Pixels</h3><dl><dt>During match / processing</dt><dd>Video recording only. No OCR, state extraction or analysis.</dd><dt>Stored</dt><dd>Pixels during gameplay; own-state observations after confirmed match end.</dd><dt>Shown to player</dt><dd>Nothing live. Post-game timeline and review only.</dd><dt>Analysis timing</dt><dd>After match end: reconstruct supported own shop, gold, level, XP, bench, board, items and decisions.</dd></dl><p class="ask">Is automated processing of previously recorded pixels permitted after the match ends for post-game coaching?</p><p class="answer">Riot response requested: YES / NO / CONDITIONAL</p></article>
+        <article class="option opponent" id="mode-d"><div class="option-top"><span class="letter">D</span><span class="chip">Opponent context · after match</span></div><h3>Post-Game Processing of Opponent Boards</h3><dl><dt>During match / processing</dt><dd>Only record pixels of opponent boards appearing through normal human scouting. No automated scouting; no opponent recognition, structuring, surfacing or use during gameplay.</dd><dt>Stored</dt><dd>Screen video; opponent context extracted only after match end.</dd><dt>Shown to player</dt><dd>Nothing live. Opponent context only within post-game review, if permitted.</dd><dt>Analysis timing</dt><dd>Opponent-board reconstruction exclusively after confirmed match end.</dd></dl><p class="ask">May normally scouted opponent-board pixels be processed only after the match has ended?</p><p class="answer">Riot response requested: YES / NO / CONDITIONAL</p></article>
+        <article class="option opponent" id="mode-e"><div class="option-top"><span class="letter">E</span><span class="chip">Boundary question only</span></div><h3>Live Structured Capture of Opponent Boards</h3><dl><dt>During match / processing</dt><dd>Recognize visible opponent champions, board positions, items and composition. Normal player scouting only; no automated camera or game control.</dd><dt>Stored</dt><dd>Structured opponent-board observations during gameplay.</dd><dt>Shown to player</dt><dd>Nothing live; no recommendations. Data surfaced and used for review only after match end.</dd><dt>Analysis timing</dt><dd>Recognition during gameplay; review only post-game. This is not a recommended architecture.</dd></dl><p class="ask">Is recognition and storage permitted during an active match when there is no live display or decision use?</p><p class="answer">Riot response requested: YES / NO / CONDITIONAL</p></article>
+        <aside class="timing-question"><p class="eyebrow">THE OPPONENT-DATA DISTINCTION</p><h3>Does processing timing change what is permitted?</h3><p>We especially want guidance on the distinction between:</p><ol><li>Recording pixels during gameplay.</li><li>Processing those pixels during gameplay.</li><li>Processing those same pixels only after the match has ended.</li></ol><p>Does the timing of processing change whether opponent-board analysis is permitted?</p><p class="note">No live output does not, by itself, establish permission to collect structured opponent state.</p></aside>
+      </div>
+    </section>
+
+    <section class="section commitments" id="boundaries" aria-labelledby="boundaries-title">
+      <div class="section-heading"><p class="eyebrow">03 / PRODUCT COMMITMENTS</p><h2 id="boundaries-title">What Tactrise will not do</h2><p>The proposal uses screen capture only: visible pixels, not hidden game state. We will modify the architecture if Riot requires additional restrictions.</p></div>
+      <ul><li>Read TFT or Riot process / client memory</li><li>Inspect Riot network traffic or packets</li><li>Inject into the game client</li><li>Automate gameplay, click or control the game</li><li>Provide active-match recommendations</li><li>Provide active-match scouting recommendations</li><li>Display hidden information</li><li>Expose opponent tracking during gameplay</li><li>Intentionally circumvent Vanguard or Riot protections</li></ul>
+    </section>
+
+    <section class="section" id="experience" aria-labelledby="experience-title">
+      <div class="section-heading"><p class="eyebrow">04 / INTENDED POST-GAME EXPERIENCE</p><h2 id="experience-title">Learn from this match. Bring it to the next.</h2><p>A proposed user experience after confirmed match end, separate from the capture options under review.</p></div>
+      <ol class="product-flow"><li>Recorded match</li><li>Post-game recognition / state reconstruction</li><li>Important decision timeline</li><li>Decision review</li><li>Evidence</li><li>Next-match focus</li></ol>
+      <div class="screenshots">
+        <figure><a class="image-link" href="assets/timeline.jpg" aria-label="Open full prototype decision timeline screenshot"><img src="assets/timeline.jpg" alt="Existing Tactrise Japanese demo UI showing a decision timeline and separate HP, gold and level tracks." width="1424" height="1310" loading="lazy"></a><figcaption><span class="chip">Prototype / Mock Data</span><h3>Example post-game decision timeline</h3><p>Existing Frontend v0.4.1. Important moments across a completed match; Japanese demo UI. <a href="assets/timeline.jpg">View full image ↗</a></p></figcaption></figure>
+        <figure><a class="image-link" href="assets/decision-review.jpg" aria-label="Open full prototype decision review screenshot"><img src="assets/decision-review.jpg" alt="Existing Tactrise Japanese demo decision detail, with an unresolved actual-versus-alternative comparison, evidence and next-match focus." width="1424" height="3048" loading="lazy"></a><figcaption><span class="chip">Prototype / Mock Data</span><h3>Example post-game decision review</h3><p>Conclusion → Detail → Evidence → Next Focus. This example leaves superiority unresolved. <a href="assets/decision-review.jpg">View full image ↗</a></p></figcaption></figure>
+      </div>
+      <p class="note">These are existing UI screenshots with sample data, not live analysis results or validated coaching. No new analysis results have been created for this submission.</p>
+      <div class="two-column">
+        <article class="plain-card"><p class="eyebrow">CURRENT TECHNICAL PROTOTYPE</p><h3>Research, with uncertainty preserved</h3><p>Research includes champion identity candidates, HUD validity checks, temporal state transitions, board / bench position candidates, evidence fusion and limited post-game state / decision reconstruction.</p><p>Complete automated reconstruction and commercial recognition / coaching accuracy remain unvalidated. Unknown observations stay unknown.</p></article>
+        <article class="plain-card"><p class="eyebrow">PLANNED DATA HANDLING</p><h3>Minimal retention, still to be specified</h3><p>The player would opt in before recording or importing video. Capture would contain visible screen pixels, including opponent boards the player normally views. Pixels, later structured observations and minimal evidence would be used only for post-game review.</p><p>The intended flow uses original video only for analysis, deletes it after analysis, and retains results plus minimal necessary evidence. This is a plan, not implemented deletion or a finalized Privacy Policy. Storage, exact retention periods, consent withdrawal, security and evidence/account deletion still need specification.</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="questions" aria-labelledby="questions-title">
+      <div class="section-heading"><p class="eyebrow">05 / REQUEST FOR GUIDANCE</p><h2 id="questions-title">Questions for Riot</h2><p>Please answer A–E individually with YES / NO / CONDITIONAL and any applicable conditions. We are seeking boundary clarification, not completed-product approval.</p></div>
+      <ol class="questions">
+        <li>Is passive screen recording during an active TFT match permitted if there is no real-time processing or output?</li>
+        <li>Is extracting and storing structured information from the player's own visible screen during the match permitted if it is only used after the match?</li>
+        <li>Is automated analysis of previously recorded screen pixels permitted after the match has ended?</li>
+        <li>May opponent-board pixels captured through normal scouting be analyzed only after the match has ended?</li>
+        <li>Is recognizing and storing opponent-board state during an active match permitted if that information is never displayed or used until the match is over?</li>
+        <li>Are there any additional restrictions on screen-capture-based post-game analysis that are not covered by the public TFT policies? <span>In particular, how does the September 29, 2026 API-only data-access announcement apply to passive pixel recording, screen OCR and processing an already-completed recording?</span></li>
+        <li>Where Riot provides an equivalent supported API or event source, should Tactrise use that source instead of deriving the same information from screen pixels?</li>
+      </ol>
+      <p class="closing-statement">We have not finalized the capture architecture.<br><strong>We will implement only the modes Riot confirms are permitted.</strong></p>
+    </section>
+
+    <section class="section sources" id="sources" aria-labelledby="sources-title">
+      <div class="section-heading"><p class="eyebrow">06 / OFFICIAL REFERENCES</p><h2 id="sources-title">Policy context, not a permission claim</h2><p>Official Riot sources checked 05 October 2026. None is presented as approval of A–E. Specific capture and processing cases need Riot confirmation.</p></div>
+      <ul>
+        <li><a href="https://developer.riotgames.com/docs/tft">TFT Developer Policy ↗</a><p>Registration and game-integrity rules, including restrictions on live opponent tracking and dynamic assistance.</p></li>
+        <li><a href="https://developer.riotgames.com/policies/general">General Policies ↗</a><p>Product review, supported data services, independence notices and game integrity.</p></li>
+        <li><a href="https://support.riotgames.com/en-us/riot/events/third-party-applications">Third-party applications ↗</a><p>Fair play, player decisions and hidden information.</p></li>
+        <li><a href="https://support.riotgames.com/en-us/riot/performance/game-memory-access-removed-for-third-party-apps">Game memory / third-party access announcement ↗</a><p>Published 29 Sep 2026: memory-access restrictions and an official-API data-access direction. We ask how it applies to pixels and post-game video processing.</p></li>
+        <li><a href="https://developer.riotgames.com/docs/portal">Developer Portal / Product Registration ↗</a><p>Registration workflow. This page demonstrates intent; it is not a production-key-ready application.</p></li>
+        <li><a href="https://developer.riotgames.com/docs/faqs">Developer FAQ ↗</a><p>Prototype evidence, production requirements and the move from new app messages to Support.</p></li>
+        <li><a href="https://www.riotgames.com/en/DevRel/new-support-site">Developer Relations: Support site ↗</a><p>Policy questions through <a href="https://support-developer.riotgames.com/hc/en-us/requests/new">Developer Support</a>.</p></li>
+        <li><a href="https://www.riotgames.com/en/legal">Riot legal / IP guidance ↗</a><p>Independent presentation and intellectual-property considerations. No Riot logo is used as Tactrise branding.</p></li>
+      </ul>
+    </section>
+  </main>
+  <footer class="wrap"><div class="footer-brand">Tactrise <span>Architecture decision pending</span></div><p>Tactrise isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p><a href="#top">Back to top ↑</a></footer>
+</body>
+</html>
